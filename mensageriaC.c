@@ -124,7 +124,8 @@ int main(){
 			case 3:
 				consultarEmissores(&inicioEmissores);
 				break;
-				
+			case 4:
+				break;
 			
 		}
 		
