@@ -2,7 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct emissor{
+struct fila{ // (fila individual)
+	int idEmissor;
+	char mensagem[50];
+	struct fila *proxM;
+};
+typedef struct fila Fila;
+
+struct emissor{ // (lista de emissores de mensagem)
 	int id;
 	char nome[20];
 	struct emissor *proxE, *antE;
@@ -10,6 +17,13 @@ struct emissor{
 };
 typedef struct emissor Emissor;
 
+struct receptor{ // (lista dos receptores de mensagem {cada receptor contem uma fila de mensagens} - é a fila de mensagens)
+	int id;
+	char nome[20];
+	struct receptor *proxR, *antR;
+	struct fila *inicioFila;
+};
+typedef struct receptor Receptor;
 
 void printMenu(){
 	printf("\n1 -> Incluir Emissor\n");
@@ -24,6 +38,7 @@ void printMenu(){
 	printf("0 -> Sair\n\n");
 	printf("Escolha: ");
 }
+
 void incluirEmissor(int id, char nome[], Emissor **inicioE) {
     Emissor *novoE;
     novoE = (Emissor*)malloc(sizeof(Emissor));
@@ -94,9 +109,84 @@ void consultarEmissores(Emissor **inicioE){
 	printf("\n");
 }
 
+void incluirReceptor(int id, char nome[], Receptor **inicioR){
+	Receptor *novoR;
+    novoR = (Receptor*)malloc(sizeof(Receptor));
+    novoR->id = id;
+    strcpy(novoR->nome, nome);
+    novoR->proxR = NULL;
+    novoR->antR = NULL;
+    
+    novoR->inicioFila = (Fila*)malloc(sizeof(Fila));
+
+    if (*inicioR == NULL || id < (*inicioR)->id) { // insere no inicio
+        novoR->proxR = *inicioR;
+        if (*inicioR != NULL) {
+            (*inicioR)->antR = novoR;
+        }
+        *inicioR = novoR;
+        return;
+    }
+
+    Receptor *aux = *inicioR;
+    while (aux->proxR != NULL && aux->proxR->id <= id) {
+        if (aux->proxR->id == id) { // se o id ja existir n insere
+            free(novoR);
+            return;
+        }
+        aux = aux->proxR;
+    }
+	// insere no 'meio'
+    novoR->proxR = aux->proxR;
+    novoR->antR = aux;
+    if (aux->proxR != NULL) {
+        aux->proxR->antR = novoR;
+    }
+    aux->proxR = novoR;
+}
+
+void removeReceptor(int id, Receptor **inicioR){
+	Receptor *aux = *inicioR;
+	
+    while (aux != NULL) {
+        if (aux->id == id) {
+            if (aux->antR != NULL) {
+                (aux->antR)->proxR = aux->proxR;
+                if (aux->proxR != NULL) {
+                    (aux->proxR)->antR = aux->antR;
+                }
+            } else {
+                *inicioR = aux->proxR; // se for o primeiro da lista sendo removido
+                if(*inicioR != NULL){ // se for o unico sendo removido
+                	(*inicioR)->antR = NULL;
+				}
+                
+            }
+            free(aux);
+            return;
+        }
+        aux = aux->proxR;
+    }
+}
+
+void consultaReceptores(Receptor **inicioR){
+	Receptor *aux = *inicioR;
+
+	printf("\nReceptores: ");
+
+	while(aux != NULL){
+		printf("\nid: %d -> %s", aux->id, aux->nome);
+		aux = aux->proxR;
+	}
+	printf("\n");
+}
+
 int main(){
 	Emissor *inicioEmissores;
 	inicioEmissores = NULL;	
+	
+	Receptor *inicioReceptores;
+	inicioReceptores = NULL;
 	
 	int opc = 0;
 	
@@ -105,28 +195,44 @@ int main(){
 		scanf("%d", &opc);
 		
 		switch (opc){
-			case 1:
-				int idI;
-				char nome[20];
+			case 1: ;
+				int idIE;
+				char nomeE[20];
 				printf("id: ");
-				scanf("%d", &idI);
+				scanf("%d", &idIE);
 				getchar();
 				printf("nome: ");
-				gets(nome);
-				incluirEmissor(idI, nome, &inicioEmissores);
+				gets(nomeE);
+				incluirEmissor(idIE, nomeE, &inicioEmissores);
 				break;
-			case 2:
-				int idE;
+			case 2: ;
+				int idDE;
 				printf("id: ");
-				scanf("%d", &idE);
-				removeEmissor(idE, &inicioEmissores);
+				scanf("%d", &idDE);
+				removeEmissor(idDE, &inicioEmissores);
 				break;
-			case 3:
+			case 3: ;
 				consultarEmissores(&inicioEmissores);
 				break;
-			case 4:
+			case 4: ;
+				int idIR;
+				char nomeR[20];
+				printf("id: ");
+				scanf("%d", &idIR);
+				getchar();
+				printf("nome: ");
+				gets(nomeR);
+				incluirReceptor(idIR, nomeR, &inicioReceptores);
 				break;
-			
+			case 5: ;
+				int idDR;
+				printf("id: ");
+				scanf("%d", &idDR);
+				removeReceptor(idDR, &inicioReceptores);
+				break;
+			case 6: ;
+				consultaReceptores(&inicioReceptores);
+				break;
 		}
 		
 	}while(opc != 0);
