@@ -117,7 +117,8 @@ void incluirReceptor(int id, char nome[], Receptor **inicioR){
     novoR->proxR = NULL;
     novoR->antR = NULL;
     
-    novoR->inicioFila = (Fila*)malloc(sizeof(Fila));
+    //novoR->inicioFila = (Fila*)malloc(sizeof(Fila));
+    novoR->inicioFila = NULL;
 
     if (*inicioR == NULL || id < (*inicioR)->id) { // insere no inicio
         novoR->proxR = *inicioR;
@@ -181,6 +182,75 @@ void consultaReceptores(Receptor **inicioR){
 	printf("\n");
 }
 
+void enviarMensagem(int idEmissor, int idReceptor, char mensagem[], Receptor **inicioR) {
+    Receptor *aux = *inicioR;
+
+    while (aux != NULL) {
+        if (aux->id == idReceptor) {
+            Fila *novaMensagem = (Fila*)malloc(sizeof(Fila));
+            novaMensagem->idEmissor = idEmissor;
+            strcpy(novaMensagem->mensagem, mensagem);
+            novaMensagem->proxM = NULL;
+
+            if (aux->inicioFila == NULL) {
+                aux->inicioFila = novaMensagem;
+            } else {
+                Fila *temp = aux->inicioFila;
+                while (temp->proxM != NULL) {
+                    temp = temp->proxM;
+                }
+                temp->proxM = novaMensagem;
+            }
+            printf("Mensagem enviada com sucesso para o receptor %d.\n", idReceptor);
+            return;
+        }
+        aux = aux->proxR;
+    }
+    printf("Erro: Receptor não encontrado.\n");
+}
+
+
+void retirarMensagem(int idReceptor, Receptor **inicioR) {
+    Receptor *aux = *inicioR;
+
+    while (aux != NULL) {
+        if (aux->id == idReceptor) {
+            if (aux->inicioFila == NULL) {
+                printf("Erro: Fila de mensagens está vazia para o receptor %d.\n", idReceptor);
+            } else {
+                Fila *mensagemRetirada = aux->inicioFila;
+                aux->inicioFila = mensagemRetirada->proxM;
+                printf("Mensagem retirada: %s\n", mensagemRetirada->mensagem);
+                free(mensagemRetirada);
+            }
+            return;
+        }
+        aux = aux->proxR;
+    }
+    printf("Erro: Receptor não encontrado.\n");
+}
+
+void consultarFilaMensagens(int idReceptor, Receptor **inicioR) {
+    Receptor *aux = *inicioR;
+
+    while (aux != NULL) {
+        if (aux->id == idReceptor) {
+            Fila *mensagemAtual = aux->inicioFila;
+            
+            printf("Fila de mensagens para o receptor %d:\n", idReceptor);
+            while (mensagemAtual != NULL) {
+                printf("Emissor %d: %s\n", mensagemAtual->idEmissor, mensagemAtual->mensagem);
+                mensagemAtual = mensagemAtual->proxM;
+            }
+            return;
+        }
+        aux = aux->proxR;
+    }
+    printf("Erro: Receptor não encontrado.\n");
+}
+
+
+
 int main(){
 	Emissor *inicioEmissores;
 	inicioEmissores = NULL;	
@@ -233,9 +303,32 @@ int main(){
 			case 6: ;
 				consultaReceptores(&inicioReceptores);
 				break;
+			case 7: ;
+			    int idEmissor, idReceptor;
+			    char mensagem[50];
+			    printf("ID do emissor: ");
+			    scanf("%d", &idEmissor);
+			    printf("ID do receptor: ");
+			    scanf("%d", &idReceptor);
+			    getchar();
+			    printf("Mensagem: ");
+			    fgets(mensagem, sizeof(mensagem), stdin);
+			    enviarMensagem(idEmissor, idReceptor, mensagem, &inicioReceptores);
+			    break;
+			case 8: ;
+			    //int idReceptor;
+			    printf("ID do receptor: ");
+			    scanf("%d", &idReceptor);
+			    retirarMensagem(idReceptor, &inicioReceptores);
+			    break;
+			case 9: ;
+			    int idConsulta;
+			    printf("ID do receptor para consultar a fila de mensagens: ");
+			    scanf("%d", &idConsulta);
+			    consultarFilaMensagens(idConsulta, &inicioReceptores);
+			    break;
+
 		}
 		
 	}while(opc != 0);
 }
-
-
