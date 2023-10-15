@@ -35,6 +35,10 @@ void printMenu(){
 	printf("7 -> Enviar Mensagem\n");
 	printf("8 -> Retirar Mensagem\n");
 	printf("9 -> Consultar Fila de Mensagens\n");
+	printf("10 -> Exibir receptores com a fila de mensagens vazia\n");
+	printf("11 -> Exibir receptores com mais mensagens na fila\n");
+	printf("12 -> Exibir o Total de Mensagens Enviadas por um Emissor\n");
+	printf("13 -> Exibir o Total de Mensagens Recebidas por um Receptor\n");
 	printf("0 -> Sair\n\n");
 	printf("Escolha: ");
 }
@@ -249,6 +253,115 @@ void consultarFilaMensagens(int idReceptor, Receptor **inicioR) {
     printf("Erro: Receptor não encontrado.\n");
 }
 
+void exibirReceptoresComFilaVazia(Receptor **inicioR) {
+    Receptor *aux = *inicioR;
+    int encontrou = 0;
+
+    printf("Receptores com fila de mensagens vazia:\n");
+    while (aux != NULL) {
+        if (aux->inicioFila == NULL) {
+            printf("ID: %d, Nome: %s\n", aux->id, aux->nome);
+            encontrou = 1;
+        }
+        aux = aux->proxR;
+    }
+
+    if (!encontrou) {
+        printf("Nenhum receptor encontrado com fila de mensagens vazia.\n");
+    }
+}
+
+void exibirReceptoresComMaisMensagens(Receptor **inicioR) {
+    Receptor *aux = *inicioR;
+    int maxMensagens = 0;
+    int encontrou = 0;
+
+    // encontrar o número máximo de mensagens na fila
+    while (aux != NULL) {
+        Fila *mensagemAtual = aux->inicioFila;
+        int contagemMensagens = 0;
+
+        while (mensagemAtual != NULL) {
+            contagemMensagens++;
+            mensagemAtual = mensagemAtual->proxM;
+        }
+
+        if (contagemMensagens > maxMensagens) {
+            maxMensagens = contagemMensagens;
+        }
+
+        aux = aux->proxR;
+    }
+
+    printf("Receptores com %d mensagens na fila:\n", maxMensagens);
+    aux = *inicioR;
+
+    // imprimir receptores com o número máximo de mensagens na fila
+    while (aux != NULL) {
+        Fila *mensagemAtual = aux->inicioFila;
+        int contagemMensagens = 0;
+
+        while (mensagemAtual != NULL) {
+            contagemMensagens++;
+            mensagemAtual = mensagemAtual->proxM;
+        }
+
+        if (contagemMensagens == maxMensagens) {
+            printf("ID: %d, Nome: %s\n", aux->id, aux->nome);
+            encontrou = 1;
+        }
+
+        aux = aux->proxR;
+    }
+
+    if (!encontrou) {
+        printf("Nenhum receptor encontrado com o número máximo de mensagens na fila.\n");
+    }
+}
+
+void exibirTotalMensagensEmissor(int idEmissor, Receptor **inicioR) {
+    Receptor *aux = *inicioR;
+    int totalMensagens = 0;
+
+    while (aux != NULL) {
+        Fila *mensagemAtual = aux->inicioFila;
+
+        while (mensagemAtual != NULL) {
+            if (mensagemAtual->idEmissor == idEmissor) {
+                totalMensagens++;
+            }
+            mensagemAtual = mensagemAtual->proxM;
+        }
+
+        aux = aux->proxR;
+    }
+
+    printf("Total de mensagens enviadas pelo emissor %d: %d\n", idEmissor, totalMensagens);
+}
+
+void exibirTotalMensagensReceptor(int idReceptor, Receptor **inicioR) {
+    Receptor *aux = *inicioR;
+    int totalMensagens = 0;
+
+    while (aux != NULL) {
+        if (aux->id == idReceptor) {
+            Fila *mensagemAtual = aux->inicioFila;
+
+            while (mensagemAtual != NULL) {
+                totalMensagens++;
+                mensagemAtual = mensagemAtual->proxM;
+            }
+
+            printf("Total de mensagens recebidas pelo receptor %d: %d\n", idReceptor, totalMensagens);
+            return;
+        }
+
+        aux = aux->proxR;
+    }
+
+    printf("Erro: Receptor não encontrado.\n");
+}
+
 
 
 int main(){
@@ -327,7 +440,22 @@ int main(){
 			    scanf("%d", &idConsulta);
 			    consultarFilaMensagens(idConsulta, &inicioReceptores);
 			    break;
-
+			case 10: ;
+				exibirReceptoresComFilaVazia(&inicioReceptores);
+				break;
+			case 11: ;
+				exibirReceptoresComMaisMensagens(&inicioReceptores);
+				break;
+			case 12: ;
+			    printf("ID do emissor para exibir o total de mensagens enviadas: ");
+			    scanf("%d", &idEmissor);
+			    exibirTotalMensagensEmissor(idEmissor, &inicioReceptores);
+			    break;
+			case 13: ;
+			    printf("ID do receptor para exibir o total de mensagens recebidas: ");
+			    scanf("%d", &idReceptor);
+			    exibirTotalMensagensReceptor(idReceptor, &inicioReceptores);
+			    break;
 		}
 		
 	}while(opc != 0);
